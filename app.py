@@ -4,31 +4,38 @@ import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime
 
-# 1. CONFIGURACIÓN DEL SISTEMA ENTERPRISE v7.0
+# 1. CONFIGURACIÓN DEL SISTEMA ENTERPRISE v7.1
 st.set_page_config(
-    page_title="PastaControl ERP v7.0",
+    page_title="PastaControl ERP v7.1",
     page_icon="🍝",
     layout="wide"
 )
 
-# Estilos CSS avanzados (Colores profundos y cajas corporativas limpias)
+# Estilos CSS corregidos con colores de texto negro profundo para alta visibilidad
 st.markdown("""
     <style>
     .main-header {
         background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%);
-        color: white; padding: 30px; border-radius: 12px; text-align: center;
+        color: white !important; padding: 30px; border-radius: 12px; text-align: center;
         margin-bottom: 25px; box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         border-bottom: 5px solid #F59E0B;
     }
-    .main-header h1 { margin: 0; font-size: 34px; font-weight: 800; letter-spacing: 1px; }
-    .main-header p { margin: 8px 0 0 0; font-size: 16px; opacity: 0.9; }
+    .main-header h1 { color: white !important; margin: 0; font-size: 34px; font-weight: 800; letter-spacing: 1px; }
+    .main-header p { color: white !important; margin: 8px 0 0 0; font-size: 16px; opacity: 0.9; }
     
+    /* Caja del documento obligatoriamente blanca con textos negros muy fuertes */
     .doc-box {
-        background-color: #FFFFFF; border: 2px dashed #94A3B8;
+        background-color: #FFFFFF !important; border: 2px dashed #94A3B8;
         padding: 40px; border-radius: 10px; margin-top: 15px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.04); max-width: 800px; margin-left: auto; margin-right: auto;
+        color: #000000 !important;
     }
-    .doc-title { font-size: 24px; font-weight: bold; color: #1E3A8A; text-align: center; margin-bottom: 25px; text-transform: uppercase; border-bottom: 3px solid #1E3A8A; padding-bottom: 10px; letter-spacing: 1px; }
+    .doc-title { font-size: 24px; font-weight: bold; color: #1E3A8A !important; text-align: center; margin-bottom: 25px; text-transform: uppercase; border-bottom: 3px solid #1E3A8A; padding-bottom: 10px; letter-spacing: 1px; }
+    
+    /* Forzar que todos los datos internos de la tabla y remisión sean negros legibles */
+    .doc-box td, .doc-box tr, .doc-box strong, .doc-box small {
+        color: #000000 !important;
+    }
     
     .card-paso { background-color: #FFFFFF; border: 1px solid #E2E8F0; padding: 18px; border-radius: 8px; margin-bottom: 15px; border-left: 6px solid #F59E0B; }
     .card-critico { border-left: 6px solid #B91C1C !important; background-color: #FEE2E2 !important; }
@@ -38,7 +45,7 @@ st.markdown("""
 
 st.markdown("""
     <div class="main-header">
-        <h1>📊 PASTACONTROL ERP ENTERPRISE v7.0</h1>
+        <h1>📊 PASTACONTROL ERP ENTERPRISE v7.1</h1>
         <p>Módulos Avanzados de Manufactura Agroindustrial y Gestión Financiera Comercial</p>
     </div>
 """, unsafe_allow_html=True)
@@ -119,35 +126,35 @@ with pestana_comercial:
     st.markdown("---")
     st.markdown("#### 📄 Vista Previa del Documento Comercial")
     
-    # Vista en pantalla hermosa e inamovible (Aquí sí se ven los nombres siempre)
+    # Renderizado final con textos blindados en color negro puro
     html_remision = f"""
     <div class="doc-box">
         <div class="doc-title">REMISIÓN DE ENTREGA COMERCIAL</div>
-        <div style="text-align: center; font-size: 12px; color: #475569; margin-bottom: 25px; font-family: sans-serif;">
+        <div style="text-align: center; font-size: 12px; color: #334155; margin-bottom: 25px; font-family: sans-serif;">
             <strong>PASTACONTROL AGROINDUSTRIAL S.A.S.</strong><br>
             Nit: 901.888.234-0 • Planta de Procesamiento Central<br>
         </div>
         <table style="width:100%; font-size:14px; margin-top: 15px; margin-bottom: 25px; font-family: sans-serif; line-height: 20px;">
-            <tr><td><strong>CLIENTE:</strong> {cliente}</td><td style="text-align:right;"><strong>REMISION NO:</strong> RM-2026-001</td></tr>
-            <tr><td><strong>NIT / CÉDULA:</strong> {nit_cliente}</td><td style="text-align:right;"><strong>FECHA EMISIÓN:</strong> {datetime.now().strftime('%d/%m/%Y')}</td></tr>
+            <tr><td style="color: #000000 !important;"><strong>CLIENTE:</strong> {cliente}</td><td style="text-align:right; color: #000000 !important;"><strong>REMISION NO:</strong> RM-2026-001</td></tr>
+            <tr><td style="color: #000000 !important;"><strong>NIT / CÉDULA:</strong> {nit_cliente}</td><td style="text-align:right; color: #000000 !important;"><strong>FECHA EMISIÓN:</strong> {datetime.now().strftime('%d/%m/%Y')}</td></tr>
         </table>
         <table style="width:100%; font-size:14px; border-collapse: collapse; font-family: sans-serif;">
             <thead>
-                <tr style="background-color: #1E3A8A; color: white; text-align: left;">
-                    <th style="padding: 10px; border: 1px solid #CBD5E1;">Descripción del Ítem</th>
-                    <th style="padding: 10px; border: 1px solid #CBD5E1; text-align: center;">Cantidad</th>
-                    <th style="padding: 10px; border: 1px solid #CBD5E1; text-align: right;">Subtotal Neto</th>
+                <tr style="background-color: #1E3A8A; color: white !important; text-align: left;">
+                    <th style="padding: 10px; border: 1px solid #CBD5E1; color: white !important;">Descripción del Ítem</th>
+                    <th style="padding: 10px; border: 1px solid #CBD5E1; text-align: center; color: white !important;">Cantidad</th>
+                    <th style="padding: 10px; border: 1px solid #CBD5E1; text-align: right; color: white !important;">Subtotal Neto</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
-                    <td style="padding: 12px; border: 1px solid #CBD5E1;">Pasta Alimenticia Funcional Libre de Gluten (Fórmula F1)</td>
-                    <td style="padding: 12px; border: 1px solid #CBD5E1; text-align: center;">{kilos:,.0f} kg</td>
-                    <td style="padding: 12px; border: 1px solid #CBD5E1; text-align: right;">${subtotal_dinero:,.0f}</td>
+                    <td style="padding: 12px; border: 1px solid #CBD5E1; color: #000000 !important;">Pasta Alimenticia Funcional Libre de Gluten (Fórmula F1)</td>
+                    <td style="padding: 12px; border: 1px solid #CBD5E1; text-align: center; font-weight: bold; color: #000000 !important;">{kilos:,.0f} kg</td>
+                    <td style="padding: 12px; border: 1px solid #CBD5E1; text-align: right; color: #000000 !important;">${subtotal_dinero:,.0f}</td>
                 </tr>
                 <tr style="background-color: #F8FAFC; font-weight: bold;">
-                    <td colspan="2" style="padding: 12px; border: 1px solid #CBD5E1; text-align: right;">TOTAL:</td>
-                    <td style="padding: 12px; border: 1px solid #CBD5E1; text-align: right; color: #1E3A8A;">${subtotal_dinero:,.0f} COP</td>
+                    <td colspan="2" style="padding: 12px; border: 1px solid #CBD5E1; text-align: right; color: #000000 !important;">TOTAL:</td>
+                    <td style="padding: 12px; border: 1px solid #CBD5E1; text-align: right; color: #1E3A8A !important; font-size: 16px;">${subtotal_dinero:,.0f} COP</td>
                 </tr>
             </tbody>
         </table>
@@ -155,7 +162,7 @@ with pestana_comercial:
     """
     st.markdown(html_remision, unsafe_allow_html=True)
     
-    # BOTÓN NATIVO SEGURO DE DESCARGA: Convierte los datos a un archivo descargable de inmediato
+    # Estructura de descarga
     df_descarga = pd.DataFrame([{
         "Documento": "Remision Comercial RM-2026-001",
         "Fecha": datetime.now().strftime('%d/%m/%Y'),
@@ -164,7 +171,6 @@ with pestana_comercial:
         "Volumen (KG)": kilos,
         "Total Facturado ($ COP)": subtotal_dinero
     }])
-    
     csv_data = df_descarga.to_csv(index=False).encode('utf-8')
     
     st.markdown("<br>", unsafe_allow_html=True)
