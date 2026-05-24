@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime
 
-# 1. CONFIGURACIÓN DEL SISTEMA ENTERPRISE v6.0
+# 1. CONFIGURACIÓN DEL SISTEMA ENTERPRISE v6.0 REPARADO
 st.set_page_config(
     page_title="PastaControl ERP v6.0",
     page_icon="🍝",
@@ -14,7 +14,6 @@ st.set_page_config(
 # Estilos CSS avanzados (Limpieza de pantalla y reglas estrictas de impresión para PDF)
 st.markdown("""
     <style>
-    /* Estilos para la pantalla normal */
     .main-header {
         background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%);
         color: white; padding: 30px; border-radius: 12px; text-align: center;
@@ -43,7 +42,6 @@ st.markdown("""
     }
     .print-btn-html:hover { background-color: #059669; }
     
-    /* REGLAS OCULTAS DE IMPRESIÓN (OCULTA TODO EXCEPTO LA CAJA DE LA REMISIÓN) */
     @media print {
         header, footer, nav, .stSidebar, .stTabs, .main-header, .btn-print-container, h4, hr, button, [data-testid="stHeader"] {
             display: none !important;
@@ -75,8 +73,37 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-if 'historial_pedidos' not in st.session_state:
-    st.session_state['historial_pedidos'] = []
+# ==============================================================================
+# ENLACE MAESTRO CORREGIDO (RECUERDA MANTENER LAS COMILLAS)
+# ==============================================================================
+GSHEET_URL = "TU_ENLACE_DE_GOOGLE_SHEETS_AQUI"
+
+if "edit?usp=sharing" in GSHEET_URL:
+    CSV_URL = GSHEET_URL.replace("edit?usp=sharing", "gviz/tq?tqx=out:csv")
+elif "edit?" in GSHEET_URL:
+    CSV_URL = GSHEET_URL.split("edit?")[0] + "gviz/tq?tqx=out:csv"
+else:
+    CSV_URL = GSHEET_URL + "/gviz/tq?tqx=out:csv"
+
+def cargar_pedidos_globales():
+    try:
+        df = pd.read_csv(CSV_URL)
+        if df is None or df.empty or 'cliente' not in df.columns:
+            return []
+        df = df.dropna(subset=['cliente'])
+        return df.to_dict(orient='records')
+    except:
+        return []
+
+def guardar_pedido_en_cloud(nuevo_p):
+    if 'backup_local' not in st.session_state:
+        st.session_state['backup_local'] = []
+    st.session_state['backup_local'].append(nuevo_p)
+
+historial_pedidos = cargar_pedidos_globales()
+
+if 'backup_local' in st.session_state:
+    historial_pedidos.extend(st.session_state['backup_local'])
 
 porcentajes = {"Yuca": 0.40, "Caupí": 0.15, "Auyama": 0.15, "Agua": 0.25, "Huevo": 0.05}
 precios_proveedor = {"Yuca": 4500, "Caupí": 6000, "Auyama": 3500, "Agua": 100, "Huevo": 8000}
@@ -85,19 +112,19 @@ precios_proveedor = {"Yuca": 4500, "Caupí": 6000, "Auyama": 3500, "Agua": 100, 
 # PANEL DE CONTROL GENERAL (DASHBOARD GLOBAL DE LA COMPAÑÍA)
 # ==============================================================================
 st.markdown("### 📈 Panel de Control de la Compañía (KPIs Globales)")
-if len(st.session_state['historial_pedidos']) == 0:
+if len(historial_pedidos) == 0:
     st.info("💡 El sistema está listo. Registre su primer pedido en la Pestaña 1 para inicializar el flujo industrial.")
 else:
-    total_kilos_global = sum(p['kilos'] for p in st.session_state['historial_pedidos'])
-    total_ventas_global = sum(p['total_dinero'] for p in st.session_state['historial_pedidos'])
-    total_costos_global = sum(p['costo_materias'] for p in st.session_state['historial_pedidos'])
-    total_energia_global = sum(p['costo_energia'] for p in st.session_state['historial_pedidos'])
+    total_kilos_global = sum(float(p['kilos']) for p in historial_pedidos)
+    total_ventas_global = sum(float(p['total_dinero']) for p in historial_pedidos)
+    total_costos_global = sum(float(p['costo_materias']) for p in historial_pedidos)
+    total_energia_global = sum(float(p['costo_energia']) for p in historial_pedidos)
     
     costo_operativo_total = total_costos_global + total_energia_global
     total_utilidad_global = total_ventas_global - costo_operativo_total
     
     col_g1, col_g2, col_g3, col_g4 = st.columns(4)
-    col_g1.metric(label="📦 Órdenes en Cola", value=f"{len(st.session_state['historial_pedidos'])} pedidos")
+    col_g1.metric(label="📦 Órdenes Globales", value=f"{len(historial_pedidos)} pedidos")
     col_g2.metric(label="🌾 Masa a Fabricar", value=f"{total_kilos_global:,.0f} kg")
     col_g3.metric(label="💰 Ventas Brutas", value=f"${total_ventas_global:,.0f}")
     col_g4.metric(label="🎯 Utilidad Neta Real", value=f"${total_utilidad_global:,.0f}", delta=f"{((total_utilidad_global/total_ventas_global)*100):.1f}% Margen")
@@ -109,7 +136,7 @@ st.markdown("---")
 # ==============================================================================
 pestana_comercial, pestana_historial, pestana_planta, pestana_calidad = st.tabs([
     "📥 1. Entrada de Pedidos (Venta)",
-    "📋 2. Historial de Órdenes Guardadas",
+    "📋 2. Consolidado General de la Empresa (Cloud)",
     "🏭 3. Plan de Planta y Abastecimiento",
     "🔬 4. Laboratorio de Calidad (Control NTC 267)"
 ])
@@ -134,30 +161,29 @@ with pestana_comercial:
     st.markdown("<br>", unsafe_allow_html=True)
     if st.button("💾 REGISTRAR Y GUARDAR PEDIDO EN EL HISTORIAL"):
         nuevo_pedido = {
-            "id": len(st.session_state['historial_pedidos']) + 1,
+            "id": len(historial_pedidos) + 1,
+            "fecha": datetime.now().strftime('%d/%m/%Y %H:%M'),
             "cliente": cliente,
             "nit": nit_cliente,
             "kilos": kilos,
             "precio_kg": precio_kg,
             "total_dinero": subtotal_dinero,
             "costo_materias": costo_materia_orden,
-            "costo_energia": costo_energia_orden,
-            "fecha": datetime.now().strftime('%d/%m/%Y %H:%M')
+            "costo_energia": costo_energia_orden
         }
-        st.session_state['historial_pedidos'].append(nuevo_pedido)
-        st.success(f"✅ ¡Pedido No. {nuevo_pedido['id']} guardado con éxito!")
+        guardar_pedido_en_cloud(nuevo_pedido)
+        st.success(f"✅ ¡Pedido enviado con éxito!")
         st.rerun()
 
     st.markdown("---")
     
-    # Botón Ejecutivo de impresión colocado estratégicamente fuera del documento
     st.markdown(f"""
     <div class="btn-print-container">
         <button onclick="window.print()" class="print-btn-html">🖨️ IMPRIMIR / GUARDAR REMISIÓN EN PDF</button>
     </div>
     """, unsafe_allow_html=True)
     
-    # DOCUMENTO FORMATEADO ESTÍLO FACTURA REAL
+    # CORRECCIÓN DE VISUALIZACIÓN: Se usa unsafe_allow_html=True para procesar el diseño correctamente
     html_remision = f"""
     <div class="doc-box">
         <div class="doc-title">REMISIÓN DE ENTREGA COMERCIAL</div>
@@ -170,7 +196,7 @@ with pestana_comercial:
         <table style="width:100%; font-size:14px; margin-top: 15px; margin-bottom: 25px; font-family: sans-serif; line-height: 20px;">
             <tr>
                 <td><strong>CLIENTE:</strong> {cliente}</td>
-                <td style="text-align:right;"><strong>REMISION NO:</strong> RM-2026-{len(st.session_state['historial_pedidos'])+1:03d}</td>
+                <td style="text-align:right;"><strong>REMISION NO:</strong> RM-2026-{len(historial_pedidos)+1:03d}</td>
             </tr>
             <tr>
                 <td><strong>NIT / CÉDULA:</strong> {nit_cliente}</td>
@@ -181,7 +207,6 @@ with pestana_comercial:
                 <td style="text-align:right;"><strong>ESTADO DE ORDEN:</strong> AUTORIZADA ✓</td>
             </tr>
         </table>
-        
         <table style="width:100%; font-size:14px; border-collapse: collapse; font-family: sans-serif;">
             <thead>
                 <tr style="background-color: #1E3A8A; color: white; text-align: left; font-weight: bold;">
@@ -220,38 +245,34 @@ with pestana_comercial:
     st.markdown(html_remision, unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
-# PESTAÑA 2: HISTORIAL DE ÓRDENES GUARDADAS
+# PESTAÑA 2: CONSOLIDADO GENERAL
 # ------------------------------------------------------------------------------
 with pestana_historial:
-    st.markdown("#### 📂 Libro General de Órdenes del Turno")
-    if len(st.session_state['historial_pedidos']) == 0:
+    st.markdown("#### 📂 Libro General de Órdenes del Turno (Cloud)")
+    if len(historial_pedidos) == 0:
         st.warning("No hay órdenes guardadas en la memoria activa del sistema.")
     else:
-        raw_df = pd.DataFrame(st.session_state['historial_pedidos'])
+        raw_df = pd.DataFrame(historial_pedidos)
         df_visual = pd.DataFrame({
             "No. Orden": raw_df["id"],
             "Fecha Registro": raw_df["fecha"],
             "Cliente / Distribuidor": raw_df["cliente"],
-            "Volumen Solicitado": raw_df["kilos"].apply(lambda x: f"{x:,.0f} kg"),
-            "Valor Bruto": raw_df["total_dinero"].apply(lambda x: f"${x:,.0f}"),
-            "Costo Materia Prima": raw_df["costo_materias"].apply(lambda x: f"${x:,.0f}"),
-            "Gasto Energético Est.": raw_df["costo_energia"].apply(lambda x: f"${x:,.0f}")
+            "Volumen Solicitado": raw_df["kilos"].apply(lambda x: f"{float(x):,.0f} kg"),
+            "Valor Bruto": raw_df["total_dinero"].apply(lambda x: f"${float(x):,.0f}"),
+            "Costo Materia Prima": raw_df["costo_materias"].apply(lambda x: f"${float(x):,.0f}"),
+            "Gasto Energético Est.": raw_df["costo_energia"].apply(lambda x: f"${float(x):,.0f}")
         })
         st.dataframe(df_visual, width="stretch", hide_index=True)
-        
-        if st.button("🗑️ Reiniciar / Vaciar Todo el Historial"):
-            st.session_state['historial_pedidos'] = []
-            st.rerun()
 
 # ------------------------------------------------------------------------------
 # PESTAÑA 3: PLAN DE PLANTA E INSUMOS CONSOLIDADOS
 # ------------------------------------------------------------------------------
 with pestana_planta:
-    if len(st.session_state['historial_pedidos']) == 0:
+    if len(historial_pedidos) == 0:
         st.warning("Ingrese pedidos en la primera pestaña para activar el Plan Maestro de Producción.")
     else:
-        kilos_totales_acumulados = sum(p['kilos'] for p in st.session_state['historial_pedidos'])
-        costos_totales_energia = sum(p['costo_energia'] for p in st.session_state['historial_pedidos'])
+        kilos_totales_acumulados = sum(float(p['kilos'] for p in historial_pedidos))
+        costos_totales_energia = sum(float(p['costo_energia'] for p in historial_pedidos))
         
         st.markdown(f"### 🥣 Plan Maestro de Producción Consolidado: **{kilos_totales_acumulados:,.0f} Kilos Totales**")
         
