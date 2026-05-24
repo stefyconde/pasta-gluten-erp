@@ -4,16 +4,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime
 
-# 1. CONFIGURACIÓN DEL SISTEMA ENTERPRISE v5.0
+# 1. CONFIGURACIÓN DEL SISTEMA ENTERPRISE v6.0
 st.set_page_config(
-    page_title="PastaControl ERP v5.0",
+    page_title="PastaControl ERP v6.0",
     page_icon="🍝",
     layout="wide"
 )
 
-# Estilos CSS avanzados para dar aspecto de software corporativo premium
+# Estilos CSS avanzados (Limpieza de pantalla y reglas estrictas de impresión para PDF)
 st.markdown("""
     <style>
+    /* Estilos para la pantalla normal */
     .main-header {
         background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 100%);
         color: white; padding: 30px; border-radius: 12px; text-align: center;
@@ -25,31 +26,58 @@ st.markdown("""
     
     .doc-box {
         background-color: #FFFFFF; border: 2px dashed #94A3B8;
-        padding: 30px; border-radius: 8px; margin-top: 15px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.04); font-family: 'Courier New', Courier, monospace;
+        padding: 40px; border-radius: 10px; margin-top: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.04); max-width: 800px; margin-left: auto; margin-right: auto;
     }
-    .doc-title { font-size: 22px; font-weight: bold; color: #0F172A; text-align: center; margin-bottom: 20px; text-transform: uppercase; border-bottom: 3px solid #0F172A; padding-bottom: 8px; }
+    .doc-title { font-size: 24px; font-weight: bold; color: #1E3A8A; text-align: center; margin-bottom: 25px; text-transform: uppercase; border-bottom: 3px solid #1E3A8A; padding-bottom: 10px; letter-spacing: 1px; }
     
     .card-paso { background-color: #FFFFFF; border: 1px solid #E2E8F0; padding: 18px; border-radius: 8px; margin-bottom: 15px; border-left: 6px solid #F59E0B; }
     .card-critico { border-left: 6px solid #B91C1C !important; background-color: #FEE2E2 !important; }
     .titulo-paso { font-size: 16px; font-weight: bold; color: #1E3A8A; }
+    
+    .btn-print-container { text-align: center; margin-top: 20px; margin-bottom: 20px; }
+    .print-btn-html {
+        background-color: #10B981; color: white; padding: 12px 30px;
+        border: none; border-radius: 6px; font-weight: bold; cursor: pointer;
+        font-family: sans-serif; font-size: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .print-btn-html:hover { background-color: #059669; }
+    
+    /* REGLAS OCULTAS DE IMPRESIÓN (OCULTA TODO EXCEPTO LA CAJA DE LA REMISIÓN) */
+    @media print {
+        header, footer, nav, .stSidebar, .stTabs, .main-header, .btn-print-container, h4, hr, button, [data-testid="stHeader"] {
+            display: none !important;
+        }
+        .main .block-container {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        .doc-box {
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+        }
+        body {
+            background-color: white !important;
+            color: black !important;
+        }
+    }
     </style>
 """, unsafe_allow_html=True)
 
 st.markdown("""
     <div class="main-header">
-        <h1>📊 PASTACONTROL ERP ENTERPRISE v5.0</h1>
-        <p>Plataforma de Simulación Industrial Completa: Módulos Comerciales, Financieros y de Aseguramiento de Calidad</p>
+        <h1>📊 PASTACONTROL ERP ENTERPRISE v6.0</h1>
+        <p>Módulos Avanzados de Manufactura Agroindustrial y Gestión Financiera Comercial</p>
     </div>
 """, unsafe_allow_html=True)
 
-# ==============================================================================
-# INICIALIZACIÓN DE LA BASE DE DATOS EN MEMORIA
-# ==============================================================================
 if 'historial_pedidos' not in st.session_state:
     st.session_state['historial_pedidos'] = []
 
-# Parámetros fijos de ingeniería del proyecto
 porcentajes = {"Yuca": 0.40, "Caupí": 0.15, "Auyama": 0.15, "Agua": 0.25, "Huevo": 0.05}
 precios_proveedor = {"Yuca": 4500, "Caupí": 6000, "Auyama": 3500, "Agua": 100, "Huevo": 8000}
 
@@ -121,56 +149,75 @@ with pestana_comercial:
         st.rerun()
 
     st.markdown("---")
-    st.markdown("#### 📄 Vista Previa del Documento Comercial")
     
-    # Renderizado estético en pantalla para la sustentación
+    # Botón Ejecutivo de impresión colocado estratégicamente fuera del documento
+    st.markdown(f"""
+    <div class="btn-print-container">
+        <button onclick="window.print()" class="print-btn-html">🖨️ IMPRIMIR / GUARDAR REMISIÓN EN PDF</button>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # DOCUMENTO FORMATEADO ESTÍLO FACTURA REAL
     html_remision = f"""
     <div class="doc-box">
-        <div class="doc-title">Remisión Oficial de Entrega No. RM-2026-001</div>
-        <table style="width:100%; font-size:14px; border-collapse: collapse; font-family: monospace;">
-            <tr><td><strong>Cliente:</strong> {cliente}</td><td style="text-align:right;"><strong>NIT:</strong> {nit_cliente}</td></tr>
-            <tr><td><strong>Fecha de Proceso:</strong> {datetime.now().strftime('%d/%m/%Y')}</td><td style="text-align:right;"><strong>Ubicación:</strong> Planta Central</td></tr>
-            <tr style="border-bottom: 2px solid #000; border-top: 2px solid #000;"><td style="padding:10px 0;"><strong>Detalle del Ítem Despachado</strong></td><td style="text-align:right; padding:10px 0;"><strong>Subtotal</strong></td></tr>
-            <tr><td style="padding:8px 0;">Pasta Alimenticia Funcional Libre de Gluten (Fórmula Estándar F1)<br><small>{kilos:,.0f} kg netos @ ${precio_kg:,.0f}/kg</small></td><td style="text-align:right; vertical-align:top; padding:8px 0;">${subtotal_dinero:,.0f}</td></tr>
-            <tr style="border-top: 2px solid #000; font-weight:bold;"><td style="padding:10px 0;">VALOR TOTAL FACTURADO:</td><td style="text-align:right; padding:10px 0; font-size:16px;">${subtotal_dinero:,.0f} COP</td></tr>
+        <div class="doc-title">REMISIÓN DE ENTREGA COMERCIAL</div>
+        <div style="text-align: center; font-size: 12px; color: #475569; margin-bottom: 25px; font-family: sans-serif;">
+            <strong>PASTACONTROL AGROINDUSTRIAL S.A.S.</strong><br>
+            Nit: 901.888.234-0 • Planta de Procesamiento Central<br>
+            Contacto: operaciones@pastacontrol.com
+        </div>
+        <hr style="border: 1px solid #1E3A8A;">
+        <table style="width:100%; font-size:14px; margin-top: 15px; margin-bottom: 25px; font-family: sans-serif; line-height: 20px;">
+            <tr>
+                <td><strong>CLIENTE:</strong> {cliente}</td>
+                <td style="text-align:right;"><strong>REMISION NO:</strong> RM-2026-{len(st.session_state['historial_pedidos'])+1:03d}</td>
+            </tr>
+            <tr>
+                <td><strong>NIT / CÉDULA:</strong> {nit_cliente}</td>
+                <td style="text-align:right;"><strong>FECHA EMISIÓN:</strong> {datetime.now().strftime('%d/%m/%Y')}</td>
+            </tr>
+            <tr>
+                <td><strong>BODEGA DE SALIDA:</strong> Producto Terminado</td>
+                <td style="text-align:right;"><strong>ESTADO DE ORDEN:</strong> AUTORIZADA ✓</td>
+            </tr>
+        </table>
+        
+        <table style="width:100%; font-size:14px; border-collapse: collapse; font-family: sans-serif;">
+            <thead>
+                <tr style="background-color: #1E3A8A; color: white; text-align: left; font-weight: bold;">
+                    <th style="padding: 10px; border: 1px solid #CBD5E1;">Descripción del Ítem Regulado</th>
+                    <th style="padding: 10px; border: 1px solid #CBD5E1; text-align: center;">Cantidad</th>
+                    <th style="padding: 10px; border: 1px solid #CBD5E1; text-align: right;">Valor Unitario</th>
+                    <th style="padding: 10px; border: 1px solid #CBD5E1; text-align: right;">Subtotal Neto</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="padding: 12px; border: 1px solid #CBD5E1; line-height: 18px;">
+                        <strong>Pasta Alimenticia Funcional Libre de Gluten (Fórmula F1)</strong><br>
+                        <small style="color: #64748B;">Desarrollo basado en matriz continua de almidón gelatinizado de Yuca con enriquecimiento estructural de Harina de Caupí y Auyama.</small>
+                    </td>
+                    <td style="padding: 12px; border: 1px solid #CBD5E1; text-align: center; font-weight: bold;">{kilos:,.0f} kg</td>
+                    <td style="padding: 12px; border: 1px solid #CBD5E1; text-align: right;">${precio_kg:,.0f}</td>
+                    <td style="padding: 12px; border: 1px solid #CBD5E1; text-align: right; font-weight: bold;">${subtotal_dinero:,.0f}</td>
+                </tr>
+                <tr style="background-color: #F8FAFC; font-weight: bold; font-size: 16px;">
+                    <td colspan="3" style="padding: 12px; border: 1px solid #CBD5E1; text-align: right; color: #1E3A8A;">VALOR TOTAL FACTURADO ($ COP):</td>
+                    <td style="padding: 12px; border: 1px solid #CBD5E1; text-align: right; color: #1E3A8A; font-size: 18px;">${subtotal_dinero:,.0f}</td>
+                </tr>
+            </tbody>
+        </table>
+        <br><br>
+        <table style="width: 100%; font-family: sans-serif; font-size: 12px; margin-top: 30px;">
+            <tr>
+                <td style="width: 45%; border-top: 1px solid #94A3B8; text-align: center; padding-top: 5px;">Firma Despachador (Planta)</td>
+                <td style="width: 10%;"></td>
+                <td style="width: 45%; border-top: 1px solid #94A3B8; text-align: center; padding-top: 5px;">Firma Recibido (Cliente)</td>
+            </tr>
         </table>
     </div>
     """
     st.markdown(html_remision, unsafe_allow_html=True)
-    
-    # NUEVA LÓGICA DE DESCARGA DIRECTA: Crea un archivo de texto limpio e independiente estructurado
-    texto_remision_descarga = f"""==================================================
-REMISIÓN OFICIAL DE ENTREGA No. RM-2026-001
-==================================================
-Fecha de Proceso: {datetime.now().strftime('%d/%m/%Y %H:%M')}
-Ubicación: Planta Central de Producción
-
-DATOS DEL CLIENTE:
---------------------------------------------------
-Cliente / Distribuidor: {cliente}
-NIT / Identificación: {nit_cliente}
-
-DETALLE DEL DESPACHO:
---------------------------------------------------
-Producto: Pasta Funcional Libre de Gluten (Fórmula F1)
-Cantidad Solicitada: {kilos:,.0f} kg
-Precio Unitario Pactado: ${precio_kg:,.0f} COP / kg
-
---------------------------------------------------
-VALOR TOTAL NETO FACTURADO: ${subtotal_dinero:,.0f} COP
-==================================================
-Generado de forma segura por PastaControl ERP.
-"""
-    
-    st.markdown("<br>", unsafe_allow_html=True)
-    # Botón nativo de Streamlit que descarga el documento de forma directa e independiente en la Mac
-    st.download_button(
-        label="📥 DESCARGAR REMISIÓN DIGITAL (DOCUMENTO LIMPIO)",
-        data=texto_remision_descarga,
-        file_name=f"Remision_{cliente.replace(' ', '_')}.txt",
-        mime="text/plain",
-        help="Haz clic aquí para descargar el soporte formal del pedido de forma independiente."
-    )
 
 # ------------------------------------------------------------------------------
 # PESTAÑA 2: HISTORIAL DE ÓRDENES GUARDADAS
@@ -197,7 +244,7 @@ with pestana_historial:
             st.rerun()
 
 # ------------------------------------------------------------------------------
-# PESTAÑA 3: PLAN DE PLANTA E INSUMOS CONSOLIDADOS (ÁREA INDUSTRIAL)
+# PESTAÑA 3: PLAN DE PLANTA E INSUMOS CONSOLIDADOS
 # ------------------------------------------------------------------------------
 with pestana_planta:
     if len(st.session_state['historial_pedidos']) == 0:
@@ -209,7 +256,6 @@ with pestana_planta:
         st.markdown(f"### 🥣 Plan Maestro de Producción Consolidado: **{kilos_totales_acumulados:,.0f} Kilos Totales**")
         
         col_p1, col_p2 = st.columns([2, 1])
-        
         with col_p1:
             st.write("Cantidad neta de materia prima que el supervisor de bodega debe despachar a los operarios:")
             insumos_totales_kg = [kilos_totales_acumulados * pct for pct in porcentajes.values()]
@@ -240,65 +286,22 @@ with pestana_planta:
             plt.tight_layout()
             st.pyplot(fig)
 
-        st.markdown("---")
-        st.markdown("#### 🏭 Instrucciones Operativas de Flujo (Límites de Merma)")
-        st.markdown(f"""
-        <div class="card-paso">
-            <div class="titulo-paso">🟢 Paso 1: Adecuación e Inspección Fitosanitaria</div>
-            <p style="margin:2px 0 0 0; font-size:14px; color:#334155;">Seleccionar y lavar. <strong>Merma máxima tolerada para este volumen acumulado:</strong> Selección ({(kilos_totales_acumulados*0.05):.1f} kg) y Lavado ({(kilos_totales_acumulados*0.08):.1f} kg).</p>
-        </div>
-        <div class="card-paso">
-            <div class="titulo-paso">🔥 Paso 2: Tratamiento Térmico Operativo</div>
-            <p style="margin:2px 0 0 0; font-size:14px; color:#334155;">Cocción controlada de almidones estructurales nativos. Rango térmico obligatorio: <strong>65°C a 80°C</strong>.</p>
-        </div>
-        <div class="card-paso card-critico">
-            <div class="titulo-paso" style="color:#991B1B;">🚨 Paso 3: Mezclado Mecánico y Extrusión (Núcleo del Proceso)</div>
-            <p style="margin:2px 0 0 0; font-size:14px; color:#7F1D1D;">Cargar las cantidades de la tabla. El aporte de Harina de Caupí ({insumos_totales_kg[1]:.1f} kg) garantiza el porcentaje de proteína requerido para dar fuerza elástica a la masa ante el descarte del gluten.</p>
-        </div>
-        """, unsafe_allow_html=True)
-
 # ------------------------------------------------------------------------------
 # PESTAÑA 4: LABORATORIO DE CALIDAD
 # ------------------------------------------------------------------------------
 with pestana_calidad:
     st.markdown("### 🔬 Módulo de Aseguramiento de Calidad en Línea")
-    st.write("Simulador de control de lotes para el cumplimiento de la Norma Técnica Colombiana **NTC 267** (Humedad estándar para pastas alimenticias).")
+    st.write("Simulador de control de lotes para el cumplimiento de la Norma Técnica Colombiana **NTC 267**.")
     
     st.markdown("#### 🎚️ Registro de Mediciones del Operario de Calidad")
-    humedad_ingresada = st.slider(
-        "Indique el % de humedad registrado por el higrómetro al salir del túnel de secado (Etapa 4):",
-        min_value=2.0, max_value=10.0, value=4.5, step=0.1
-    )
-    
-    st.markdown("---")
-    st.markdown("#### 🚦 Estado de Aprobación de Inocuidad (Semáforo Dinámico)")
+    humedad_ingresada = st.slider("Indique el % de humedad registrado:", min_value=2.0, max_value=10.0, value=4.5, step=0.1)
     
     if humedad_ingresada <= 5.0:
-        st.success(f"🟢 **LOTE APROBADO** | Humedad registrada: {humedad_ingresada:.1f}%. Cumple estrictamente con el requerimiento normativo de la **NTC 267** (Máximo 5.0% de humedad). El lote puede pasar al área de empaque secundario.")
-        fig, ax = plt.subplots(figsize=(8, 0.8))
-        ax.barh(["Humedad"], [humedad_ingresada], color='#10B981', edgecolor='#047857', height=0.5)
-        ax.axvline(5.0, color='#B91C1C', linestyle='--', linewidth=2, label="Límite Máx NTC 267 (5%)")
-        ax.set_xlim(0, 10)
-        ax.legend(loc="upper right")
-        st.pyplot(fig)
-        
+        st.success(f"🟢 **LOTE APROBADO** | Humedad registrada: {humedad_ingresada:.1f}%. Cumple la **NTC 267**.")
     elif 5.0 < humedad_ingresada <= 6.0:
-        st.warning(f"🟡 **LOTE EN REVISIÓN / PRECAUCIÓN** | Humedad registrada: {humedad_ingresada:.1f}%. Supera el límite de la norma **NTC 267**. **Acción correctiva inmediata:** Desviar el lote nuevamente al túnel de secado por 15 minutos adicionales antes de autorizar el sellado.")
-        fig, ax = plt.subplots(figsize=(8, 0.8))
-        ax.barh(["Humedad"], [humedad_ingresada], color='#F59E0B', edgecolor='#B45309', height=0.5)
-        ax.axvline(5.0, color='#B91C1C', linestyle='--', linewidth=2, label="Límite Máx NTC 267 (5%)")
-        ax.set_xlim(0, 10)
-        ax.legend(loc="upper right")
-        st.pyplot(fig)
-        
+        st.warning(f"🟡 **LOTE EN REVISIÓN** | Humedad registrada: {humedad_ingresada:.1f}%. Requiere secado adicional.")
     else:
-        st.error(f"🔴 **LOTE RECHAZADO / MERMA** | Humedad crítica detectada: {humedad_ingresada:.1f}%. El producto retiene demasiada agua libre, lo que compromete la vida útil y promueve el desarrollo de mohos y levaduras. El lote queda bloqueado por el departamento de calidad.")
-        fig, ax = plt.subplots(figsize=(8, 0.8))
-        ax.barh(["Humedad"], [humedad_ingresada], color='#EF4444', edgecolor='#B91C1C', height=0.5)
-        ax.axvline(5.0, color='#B91C1C', linestyle='--', linewidth=2, label="Límite Máx NTC 267 (5%)")
-        ax.set_xlim(0, 10)
-        ax.legend(loc="upper right")
-        st.pyplot(fig)
+        st.error(f"🔴 **LOTE RECHAZADO** | Humedad crítica detectada: {humedad_ingresada:.1f}%. Bloqueado por calidad.")
 
 st.markdown("---")
-st.caption("🔒 PastaControl Enterprise System • Versión de Alta Fidelidad para Sustentación Pública • Derechos Reservados")
+st.caption("🔒 PastaControl Enterprise System • Versión de Alta Fidelidad para Sustentación Pública")
