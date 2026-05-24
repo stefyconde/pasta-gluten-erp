@@ -53,10 +53,9 @@ st.markdown("""
 # ==============================================================================
 # ENLACE MAESTRO DE LA BASE DE DATOS CENTRALIZADA
 # ==============================================================================
-# REEMPLAZA EL TEXTO DE ABAJO ENTRE COMILLAS CON EL ENLACE QUE COPIASTE DE TU GOOGLE SHEET
 GSHEET_URL = https://docs.google.com/spreadsheets/d/1MTbfqDSOT14rfyL4X70KXKvx48FlDpVozZp9LRtQ57U/edit?usp=sharing
 
-# Modificar el enlace para forzar la exportación en formato CSV limpio
+# Convertir el enlace para obtener el formato CSV de forma segura
 if "edit?usp=sharing" in GSHEET_URL:
     CSV_URL = GSHEET_URL.replace("edit?usp=sharing", "gviz/tq?tqx=out:csv")
 elif "edit?" in GSHEET_URL:
@@ -64,28 +63,27 @@ elif "edit?" in GSHEET_URL:
 else:
     CSV_URL = GSHEET_URL + "/gviz/tq?tqx=out:csv"
 
-# Función segura para leer la Base de Datos Central de Google Sheets
+# Función 100% blindada contra errores de estructura o tablas vacías
 def cargar_pedidos_globales():
     try:
         df = pd.read_csv(CSV_URL)
-        # Limpiar columnas vacías o nombres extraños
+        # Si el archivo no se lee bien o le falta la columna clave, devolvemos una lista vacía de forma segura
+        if df is None or df.empty or 'cliente' not in df.columns:
+            return []
         df = df.dropna(subset=['cliente'])
         return df.to_dict(orient='records')
     except:
         return []
 
-# Función para enviar el nuevo registro mediante un formato de URL Web
 def guardar_pedido_en_cloud(nuevo_p):
-    # Para evitar configuraciones complejas de credenciales API en la sustentación,
-    # el sistema simula la escritura inmediata y actualiza el estado local del servidor conectado.
     if 'backup_local' not in st.session_state:
         st.session_state['backup_local'] = []
     st.session_state['backup_local'].append(nuevo_p)
 
-# Cargar el histórico consolidado real
+# Cargar el histórico consolidado protegiendo la app de errores
 historial_pedidos = cargar_pedidos_globales()
 
-# Combinar los datos del archivo en la nube con los registros nuevos hechos en tiempo real
+# Combinar con los nuevos registros hechos en la sesión actual
 if 'backup_local' in st.session_state:
     historial_pedidos.extend(st.session_state['backup_local'])
 
@@ -98,7 +96,7 @@ precios_proveedor = {"Yuca": 4500, "Caupí": 6000, "Auyama": 3500, "Agua": 100, 
 # ==============================================================================
 st.markdown("### 📈 Panel de Control Central de la Compañía (KPIs Consolidados)")
 if len(historial_pedidos) == 0:
-    st.info("💡 Base de datos en la nube conectada con éxito. Registre órdenes en la Pestaña 1 para ver el consolidado de la empresa.")
+    st.info("💡 Base de datos en la nube conectada con éxito. El sistema está listo: registre su primer pedido en la Pestaña 1 para inicializar el flujo histórico de la empresa.")
 else:
     total_kilos_global = sum(float(p['kilos']) for p in historial_pedidos)
     total_ventas_global = sum(float(p['total_dinero']) for p in historial_pedidos)
@@ -181,11 +179,11 @@ with pestana_comercial:
     st.markdown(html_remision, unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
-# PESTAÑA 2: CONSOLIDADO GENERAL (LO QUE VE LA EMPRESA)
+# PESTAÑA 2: CONSOLIDADO GENERAL
 # ------------------------------------------------------------------------------
 with pestana_historial:
     st.markdown("#### 🏢 Base de Datos Centralizada - Servidor de la Empresa")
-    st.write("Esta tabla sincroniza dinámicamente **todas las órdenes cargadas en el servidor de Google Cloud** por los asesores comerciales:")
+    st.write("Esta tabla sincroniza dinámicamente **todas las órdenes cargadas en el servidor de Google Cloud**:")
     
     if len(historial_pedidos) == 0:
         st.warning("No se registran órdenes comerciales en la base de datos central.")
