@@ -4,14 +4,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime
 
-# 1. CONFIGURACIÓN DEL SISTEMA EMBAJADOR PREMIUM
+# 1. CONFIGURACIÓN DEL SISTEMA ENTERPRISE v5.0
 st.set_page_config(
-    page_title="PastaControl ERP Enterprise v3.0",
+    page_title="PastaControl ERP v5.0",
     page_icon="🍝",
     layout="wide"
 )
 
-# Estilos CSS avanzados (Colores profundos, diseño de documentos reales y animaciones)
+# Estilos CSS avanzados para dar aspecto de software corporativo premium
 st.markdown("""
     <style>
     .main-header {
@@ -33,20 +33,12 @@ st.markdown("""
     .card-paso { background-color: #FFFFFF; border: 1px solid #E2E8F0; padding: 18px; border-radius: 8px; margin-bottom: 15px; border-left: 6px solid #F59E0B; }
     .card-critico { border-left: 6px solid #B91C1C !important; background-color: #FEE2E2 !important; }
     .titulo-paso { font-size: 16px; font-weight: bold; color: #1E3A8A; }
-    
-    /* Botón de impresión ocultable */
-    .print-btn-html {
-        background-color: #10B981; color: white; padding: 10px 20px;
-        border: none; border-radius: 6px; font-weight: bold; cursor: pointer;
-        font-family: sans-serif; text-decoration: none; display: inline-block;
-    }
-    .print-btn-html:hover { background-color: #059669; }
     </style>
 """, unsafe_allow_html=True)
 
 st.markdown("""
     <div class="main-header">
-        <h1>📊 PASTACONTROL ERP ENTERPRISE v3.0</h1>
+        <h1>📊 PASTACONTROL ERP ENTERPRISE v5.0</h1>
         <p>Plataforma de Simulación Industrial Completa: Módulos Comerciales, Financieros y de Aseguramiento de Calidad</p>
     </div>
 """, unsafe_allow_html=True)
@@ -73,7 +65,6 @@ else:
     total_costos_global = sum(p['costo_materias'] for p in st.session_state['historial_pedidos'])
     total_energia_global = sum(p['costo_energia'] for p in st.session_state['historial_pedidos'])
     
-    # Costo total acumulado incluyendo servicios públicos
     costo_operativo_total = total_costos_global + total_energia_global
     total_utilidad_global = total_ventas_global - costo_operativo_total
     
@@ -108,9 +99,7 @@ with pestana_comercial:
         kilos = st.number_input("Cantidad de Pasta a Fabricar (Kilos):", min_value=5, max_value=10000, value=100, step=5)
         precio_kg = st.number_input("Precio Pactado por Kilo ($ COP):", min_value=5000, value=15000, step=500)
         
-    # IDEA 4: SIMULACIÓN DE CONSUMO ENERGÉTICO (Servicios Públicos)
-    # Valores base promedio: 0.12 kWh de energía por kg de pasta y 0.05 m3 de gas para cocción/secado
-    costo_energia_orden = kilos * ((0.12 * 950) + (0.05 * 1400)) # tarifas estimadas COP
+    costo_energia_orden = kilos * ((0.12 * 950) + (0.05 * 1400))
     subtotal_dinero = kilos * precio_kg
     costo_materia_orden = sum((kilos * porcentajes[ing] * precios_proveedor[ing]) for ing in porcentajes.keys())
     
@@ -134,14 +123,11 @@ with pestana_comercial:
     st.markdown("---")
     st.markdown("#### 📄 Vista Previa del Documento Comercial")
     
-    # IDEA 1: BOTÓN DE IMPRESIÓN / DESCARGA PDF INTEGRADO EN HTML
+    # Renderizado estético en pantalla para la sustentación
     html_remision = f"""
-    <div class="doc-box" id="seccion-remision">
-        <div style="text-align: right; margin-bottom: 10px;">
-            <button onclick="window.print()" class="print-btn-html">🖨️ Generar PDF / Imprimir Documento</button>
-        </div>
+    <div class="doc-box">
         <div class="doc-title">Remisión Oficial de Entrega No. RM-2026-001</div>
-        <table style="width:100%; font-size:14px; border-collapse: collapse;">
+        <table style="width:100%; font-size:14px; border-collapse: collapse; font-family: monospace;">
             <tr><td><strong>Cliente:</strong> {cliente}</td><td style="text-align:right;"><strong>NIT:</strong> {nit_cliente}</td></tr>
             <tr><td><strong>Fecha de Proceso:</strong> {datetime.now().strftime('%d/%m/%Y')}</td><td style="text-align:right;"><strong>Ubicación:</strong> Planta Central</td></tr>
             <tr style="border-bottom: 2px solid #000; border-top: 2px solid #000;"><td style="padding:10px 0;"><strong>Detalle del Ítem Despachado</strong></td><td style="text-align:right; padding:10px 0;"><strong>Subtotal</strong></td></tr>
@@ -151,6 +137,40 @@ with pestana_comercial:
     </div>
     """
     st.markdown(html_remision, unsafe_allow_html=True)
+    
+    # NUEVA LÓGICA DE DESCARGA DIRECTA: Crea un archivo de texto limpio e independiente estructurado
+    texto_remision_descarga = f"""==================================================
+REMISIÓN OFICIAL DE ENTREGA No. RM-2026-001
+==================================================
+Fecha de Proceso: {datetime.now().strftime('%d/%m/%Y %H:%M')}
+Ubicación: Planta Central de Producción
+
+DATOS DEL CLIENTE:
+--------------------------------------------------
+Cliente / Distribuidor: {cliente}
+NIT / Identificación: {nit_cliente}
+
+DETALLE DEL DESPACHO:
+--------------------------------------------------
+Producto: Pasta Funcional Libre de Gluten (Fórmula F1)
+Cantidad Solicitada: {kilos:,.0f} kg
+Precio Unitario Pactado: ${precio_kg:,.0f} COP / kg
+
+--------------------------------------------------
+VALOR TOTAL NETO FACTURADO: ${subtotal_dinero:,.0f} COP
+==================================================
+Generado de forma segura por PastaControl ERP.
+"""
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    # Botón nativo de Streamlit que descarga el documento de forma directa e independiente en la Mac
+    st.download_button(
+        label="📥 DESCARGAR REMISIÓN DIGITAL (DOCUMENTO LIMPIO)",
+        data=texto_remision_descarga,
+        file_name=f"Remision_{cliente.replace(' ', '_')}.txt",
+        mime="text/plain",
+        help="Haz clic aquí para descargar el soporte formal del pedido de forma independiente."
+    )
 
 # ------------------------------------------------------------------------------
 # PESTAÑA 2: HISTORIAL DE ÓRDENES GUARDADAS
@@ -203,15 +223,13 @@ with pestana_planta:
             })
             st.dataframe(df_consolidado, width="stretch", hide_index=True)
             
-            # IDEA 4 EXPLICADA: Desglose de servicios públicos
             st.markdown("##### ⚡ Detalle del Consumo de Servicios Públicos Proyectado:")
             st.markdown(f"""
-            *   **Consumo Eléctrico Estimado (Extrusor y Bandas):** ${(costos_totales_energia*0.6):,.0f} COP
-            *   **Consumo Térmico Estimado (Gas en Cocción y Túnel):** ${(costos_totales_energia*0.4):,.0f} COP
+            * **Consumo Eléctrico Estimado (Extrusor y Bandas):** ${(costos_totales_energia*0.6):,.0f} COP
+            * **Consumo Térmico Estimado (Gas en Cocción y Túnel):** ${(costos_totales_energia*0.4):,.0f} COP
             """)
             
         with col_p2:
-            # IDEA 3: GRÁFICO DE TORTA DINÁMICO PARA EL ALMACÉN
             st.markdown("##### 🥧 Distribución de Peso en Tolva")
             fig, ax = plt.subplots(figsize=(4.5, 4.5))
             labels = ['Yuca', 'Caupí', 'Auyama', 'Agua', 'Huevo']
@@ -240,7 +258,7 @@ with pestana_planta:
         """, unsafe_allow_html=True)
 
 # ------------------------------------------------------------------------------
-# PESTAÑA 4: LABORATORIO DE CALIDAD (IDEA 2: GRÁFICOS DE SEMÁFORO Y ADVERTENCIAS)
+# PESTAÑA 4: LABORATORIO DE CALIDAD
 # ------------------------------------------------------------------------------
 with pestana_calidad:
     st.markdown("### 🔬 Módulo de Aseguramiento de Calidad en Línea")
@@ -255,12 +273,8 @@ with pestana_calidad:
     st.markdown("---")
     st.markdown("#### 🚦 Estado de Aprobación de Inocuidad (Semáforo Dinámico)")
     
-    # Lógica del semáforo dinámico de calidad
     if humedad_ingresada <= 5.0:
-        # Estado Verde - Cumple Norma
         st.success(f"🟢 **LOTE APROBADO** | Humedad registrada: {humedad_ingresada:.1f}%. Cumple estrictamente con el requerimiento normativo de la **NTC 267** (Máximo 5.0% de humedad). El lote puede pasar al área de empaque secundario.")
-        
-        # Dibujar indicador visual verde
         fig, ax = plt.subplots(figsize=(8, 0.8))
         ax.barh(["Humedad"], [humedad_ingresada], color='#10B981', edgecolor='#047857', height=0.5)
         ax.axvline(5.0, color='#B91C1C', linestyle='--', linewidth=2, label="Límite Máx NTC 267 (5%)")
@@ -269,10 +283,7 @@ with pestana_calidad:
         st.pyplot(fig)
         
     elif 5.0 < humedad_ingresada <= 6.0:
-        # Estado Amarillo - Alerta / Retrabajo
         st.warning(f"🟡 **LOTE EN REVISIÓN / PRECAUCIÓN** | Humedad registrada: {humedad_ingresada:.1f}%. Supera el límite de la norma **NTC 267**. **Acción correctiva inmediata:** Desviar el lote nuevamente al túnel de secado por 15 minutos adicionales antes de autorizar el sellado.")
-        
-        # Dibujar indicador visual amarillo
         fig, ax = plt.subplots(figsize=(8, 0.8))
         ax.barh(["Humedad"], [humedad_ingresada], color='#F59E0B', edgecolor='#B45309', height=0.5)
         ax.axvline(5.0, color='#B91C1C', linestyle='--', linewidth=2, label="Límite Máx NTC 267 (5%)")
@@ -281,10 +292,7 @@ with pestana_calidad:
         st.pyplot(fig)
         
     else:
-        # Estado Rojo - Rechazado
         st.error(f"🔴 **LOTE RECHAZADO / MERMA** | Humedad crítica detectada: {humedad_ingresada:.1f}%. El producto retiene demasiada agua libre, lo que compromete la vida útil y promueve el desarrollo de mohos y levaduras. El lote queda bloqueado por el departamento de calidad.")
-        
-        # Dibujar indicador visual rojo
         fig, ax = plt.subplots(figsize=(8, 0.8))
         ax.barh(["Humedad"], [humedad_ingresada], color='#EF4444', edgecolor='#B91C1C', height=0.5)
         ax.axvline(5.0, color='#B91C1C', linestyle='--', linewidth=2, label="Límite Máx NTC 267 (5%)")
@@ -292,6 +300,5 @@ with pestana_calidad:
         ax.legend(loc="upper right")
         st.pyplot(fig)
 
-# Pie de página final blindado
 st.markdown("---")
 st.caption("🔒 PastaControl Enterprise System • Versión de Alta Fidelidad para Sustentación Pública • Derechos Reservados")
